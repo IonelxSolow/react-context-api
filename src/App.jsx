@@ -1,24 +1,32 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { PostsContext } from "./context/PostsContext";
+import PostsPage from "./components/PostsPage";
 
-import HomePage from "./pages/HomePage.jsx";
-import About from "./pages/About.jsx";
-import Posts from "./pages/PostsList.jsx";
-import Post from "./pages/Post.jsx";
-import DefaultLayout from "./layout/DefaultLayout.jsx";
-import NotFound from "./pages/NotFound.jsx";
+function App() {
+  const [posts, setPosts] = useState([]);
 
-export default function App() {
+useEffect(() => {
+  fetch("https://picsum.photos/v2/list?page=1&limit=3")
+    .then((res) => res.json())
+    .then((picsumImages) => {
+      const postsWithImages = picsumImages.map((image, index) => ({
+        id: index + 1,
+        title: `Post ${index + 1}`,
+        content: `Content of Post ${index + 1}`,
+        image: image.download_url,
+      }));
+      setPosts(postsWithImages);
+    })
+    .catch(() => {
+      setPosts([]);
+    });
+}, []);
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<DefaultLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/posts" element={<Posts />} />
-          <Route path="/post/:id" element={<Post />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <PostsContext.Provider value={posts}>
+      <PostsPage />
+    </PostsContext.Provider>
   );
 }
+
+export default App;
